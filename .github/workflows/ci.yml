@@ -1,0 +1,31 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  audit-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+        continue-on-error: true
+
+      - name: Verify Documentation Suite
+        run: |
+          test -f REQUIREMENTS_BASELINE.md
+          test -f REPOSITORY_AUDIT.md
+          test -f ARCHITECTURE.md
+          test -f IMPLEMENTATION_PLAN.md
+          test -f IMPLEMENTATION_CHECKLIST.md
+          test -f .env.example
+          echo "All Phase 0 Baseline Documentation verified successfully."
