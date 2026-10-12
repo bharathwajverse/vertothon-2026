@@ -17,16 +17,6 @@ export const PublicLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-900 text-slate-100 font-sans selection:bg-indigo-600 selection:text-white">
-      {/* Top Banner for unconfirmed details warning */}
-      <div className="bg-indigo-950/80 border-b border-indigo-800/60 px-4 py-2 text-xs text-indigo-200 flex items-center justify-center gap-2 text-center">
-        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-          Proposed Schedule
-        </span>
-        <span>
-          Dates ({EVENT_DETAILS.dates}) & Venue ({EVENT_DETAILS.location}) are pending confirmation.
-        </span>
-      </div>
-
       {/* Navigation Header */}
       <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -256,6 +246,16 @@ export const PublicLayout: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      {/* Bottom Banner for unconfirmed details notice */}
+      <div className="bg-indigo-950/80 border-t border-indigo-800/60 px-4 py-2 text-xs text-indigo-200 flex items-center justify-center gap-2 text-center">
+        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+          Proposed Schedule
+        </span>
+        <span>
+          Dates ({EVENT_DETAILS.dates}) & Venue ({EVENT_DETAILS.location}) are pending confirmation.
+        </span>
+      </div>
     </div>
   );
 };
