@@ -28,12 +28,15 @@ export interface UserProfile {
 
 export type NavigationItemId =
   | 'dashboard'
+  | 'profile'
   | 'participants'
   | 'teams'
   | 'schedule'
+  | 'announcements'
   | 'checkin'
   | 'projects'
   | 'judging'
+  | 'results'
   | 'settings';
 
 export interface NavigationItem {

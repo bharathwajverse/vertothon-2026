@@ -111,7 +111,7 @@ describe('Route Guards (ProtectedRoute & PublicOnlyRoute)', () => {
       expect(screen.getByText('Public Registration Form')).toBeInTheDocument();
     });
 
-    it('redirects to root / when user is already authenticated', () => {
+    it('redirects to /app when user is already authenticated', () => {
       const mockContext = createMockAuthContext({
         user: { id: 'u-3', email: 'logged-in@example.com' },
       });
@@ -120,7 +120,7 @@ describe('Route Guards (ProtectedRoute & PublicOnlyRoute)', () => {
         <AuthContext.Provider value={mockContext}>
           <MemoryRouter initialEntries={['/login']}>
             <Routes>
-              <Route path="/" element={<div>Root Dashboard Target</div>} />
+              <Route path="/app" element={<div>Authenticated App Target</div>} />
               <Route
                 path="/login"
                 element={
@@ -134,7 +134,7 @@ describe('Route Guards (ProtectedRoute & PublicOnlyRoute)', () => {
         </AuthContext.Provider>
       );
 
-      expect(screen.getByText('Root Dashboard Target')).toBeInTheDocument();
+      expect(screen.getByText('Authenticated App Target')).toBeInTheDocument();
       expect(screen.queryByText('Login Form')).not.toBeInTheDocument();
     });
   });

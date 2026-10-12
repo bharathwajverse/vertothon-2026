@@ -35,7 +35,7 @@ export const RegisterPage: React.FC = () => {
     });
 
     if (!signUpErr) {
-      navigate('/', { replace: true });
+      navigate('/app', { replace: true });
     }
   };
 

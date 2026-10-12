@@ -43,6 +43,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
             <NavLink
               key={item.id}
               to={item.href}
+              end={item.href === '/app'}
               onClick={onItemClick}
               className={({ isActive }) =>
                 `flex items-center justify-between px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${

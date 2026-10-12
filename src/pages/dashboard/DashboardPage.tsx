@@ -17,7 +17,7 @@ import {
   DataTable,
   ColumnDef,
 } from '../../components/common';
-import { Info, Bell, Calendar, ArrowRight, ShieldCheck, Download } from 'lucide-react';
+import { Info, Bell, Calendar, ArrowRight, ShieldCheck, Download, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface RecentApplicant {
@@ -119,24 +119,35 @@ export const DashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* Simulation / Live Telemetry Banner Notice */}
-      <div className={`border rounded-lg p-4 flex items-start gap-3 shadow-sm ${
-        isLiveTelemetry
-          ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
-          : 'bg-amber-50 border-amber-200 text-amber-900'
-      }`}>
-        <Info className={`w-5 h-5 shrink-0 mt-0.5 ${isLiveTelemetry ? 'text-emerald-600' : 'text-amber-600'}`} />
+      {/* Simulation / Live Telemetry Banner Notice (R5 Requirement) */}
+      <div
+        className={`border rounded-lg p-4 flex items-start gap-3 shadow-sm ${
+          isLiveTelemetry
+            ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+            : 'bg-amber-50 border-amber-200 text-amber-900'
+        }`}
+      >
+        {isLiveTelemetry ? (
+          <Info className="w-5 h-5 shrink-0 mt-0.5 text-emerald-600" />
+        ) : (
+          <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-amber-600" />
+        )}
         <div className="flex-1 text-sm">
-          <div className="flex items-center gap-2 font-semibold">
-            <span>{isLiveTelemetry ? 'LIVE DATABASE TELEMETRY' : DEMO_DATA_TAG}</span>
+          <div className="flex flex-wrap items-center gap-2 font-semibold">
+            <span>
+              {isLiveTelemetry
+                ? 'LIVE DATABASE TELEMETRY'
+                : 'Demo Mode — Showing simulated data. Connect Supabase for live metrics.'}
+            </span>
             <Badge variant={isLiveTelemetry ? 'success' : 'warning'}>
-              {isLiveTelemetry ? 'Supabase Connected' : 'Prototype Benchmark'}
+              {isLiveTelemetry ? 'Supabase Connected' : 'Simulated Data'}
             </Badge>
+            <span className="text-xs font-mono font-normal text-amber-800">({DEMO_DATA_TAG})</span>
           </div>
           <p className="mt-1 text-xs sm:text-sm leading-relaxed opacity-90">
             {isLiveTelemetry
-              ? 'Real-time telemetry aggregated directly from Supabase PostgreSQL tables (profiles, teams, submissions).'
-              : 'These metrics represent an isolated prototype simulation for the VERTOTHON 2026 operations dashboard.'}
+              ? 'Real-time telemetry aggregated directly from live Supabase PostgreSQL tables (profiles, teams, submissions).'
+              : 'These metrics represent an isolated prototype simulation for the VERTOTHON 2026 operations dashboard. Real numbers will automatically display once Supabase is connected and populated.'}
           </p>
         </div>
       </div>
@@ -160,7 +171,7 @@ export const DashboardPage: React.FC = () => {
           >
             Export Log
           </Button>
-          <Link to="/checkin">
+          <Link to="/app/checkin">
             <Button size="sm" rightIcon={<ArrowRight className="w-4 h-4" />}>
               Open Check-In Desk
             </Button>
@@ -174,7 +185,6 @@ export const DashboardPage: React.FC = () => {
           <MetricCard key={metric.id} data={metric} />
         ))}
       </div>
-
 
       {/* Database Health Connectivity Status */}
       <DatabaseStatusCard />

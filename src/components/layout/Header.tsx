@@ -16,10 +16,10 @@ export const Header: React.FC<HeaderProps> = ({ mobileMenuOpen, setMobileMenuOpe
   const { user, profile, role, signOut } = useAuth();
 
   const currentItem = NAVIGATION_ITEMS.find((item) => {
-    if (item.href === '/') {
-      return location.pathname === '/';
+    if (item.href === '/app') {
+      return location.pathname === '/app';
     }
-    return location.pathname.startsWith(item.href);
+    return location.pathname === item.href || location.pathname.startsWith(`${item.href}/`);
   });
 
   const pageTitle = currentItem ? currentItem.label : 'Event Operations';

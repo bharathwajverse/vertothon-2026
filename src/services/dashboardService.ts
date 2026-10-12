@@ -28,52 +28,56 @@ export async function fetchLiveDashboardMetrics(): Promise<DashboardMetricsResul
       supabase.from('submissions').select('id', { count: 'exact', head: true }),
     ]);
 
+    if (profilesRes.error || approvedRes.error || teamsRes.error || subsRes.error) {
+      throw new Error('Supabase telemetry query error');
+    }
+
     const totalProfiles = profilesRes.count ?? 0;
     const approvedProfiles = approvedRes.count ?? 0;
     const totalTeams = teamsRes.count ?? 0;
     const totalSubs = subsRes.count ?? 0;
 
-    // If database has records, use live telemetry; if database is pristine/empty, overlay baseline targets
     const metrics: MetricCardData[] = [
       {
         id: 'registrations',
         label: 'Total Registrations',
-        value: totalProfiles > 0 ? totalProfiles : 642,
-        target: 'Capacity: 1,000',
-        changeDescription: totalProfiles > 0 ? 'Live database tally' : '+48 in the last 24 hours',
+        value: totalProfiles,
+        target: 'Capacity: 1,000 (Target)',
+        changeDescription: 'Live database tally',
         status: 'normal',
       },
       {
         id: 'approved',
         label: 'Approved Participants',
-        value: approvedProfiles > 0 ? approvedProfiles : 418,
+        value: approvedProfiles,
         target: 'Review Target: 600',
-        changeDescription: totalProfiles > 0
-          ? `${Math.round((approvedProfiles / (totalProfiles || 1)) * 100)}% approval rate`
-          : '65.1% acceptance review rate',
+        changeDescription:
+          totalProfiles > 0
+            ? `${Math.round((approvedProfiles / totalProfiles) * 100)}% approval rate`
+            : '0% approval rate',
         status: 'positive',
       },
       {
         id: 'teams',
         label: 'Formed Teams',
-        value: totalTeams > 0 ? totalTeams : 112,
-        target: 'Avg 3.7 members/team',
-        changeDescription: totalTeams > 0 ? 'Active team formations' : '18 open teams looking for members',
+        value: totalTeams,
+        target: '1-4 members per team',
+        changeDescription: 'Active team formations',
         status: 'normal',
       },
       {
         id: 'projects',
         label: 'Project Submissions',
-        value: totalSubs > 0 ? totalSubs : 29,
-        target: 'Drafts in progress: 83',
-        changeDescription: 'Deadline: Nov 15, 12:00 PM',
+        value: totalSubs,
+        target: 'Evaluated by jury panel',
+        changeDescription: 'Deadline: Nov 15, 12:00 PM (Proposed)',
         status: 'warning',
       },
     ];
 
     return {
       metrics,
-      isLive: totalProfiles > 0,
+      isLive: true,
       timestamp: new Date().toISOString(),
     };
   } catch (err) {

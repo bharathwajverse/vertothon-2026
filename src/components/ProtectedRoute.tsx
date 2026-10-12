@@ -1,12 +1,12 @@
 import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../context';
 import { UserRole } from '../types';
 import { Loader2, ShieldAlert } from 'lucide-react';
 import { Button } from './common/Button';
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   allowedRoles?: UserRole[];
 }
 
@@ -51,7 +51,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  return <>{children}</>;
+  return <>{children ?? <Outlet />}</>;
 };
 
 /**
@@ -69,7 +69,7 @@ export const PublicOnlyRoute: React.FC<{ children: React.ReactNode }> = ({ child
   }
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/app" replace />;
   }
 
   return <>{children}</>;
