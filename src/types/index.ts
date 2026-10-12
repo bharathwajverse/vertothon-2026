@@ -26,6 +26,7 @@ export interface UserProfile {
   createdAt: string;
   checkedInAt?: string;
   checkedInBy?: string;
+  qrCheckinToken?: string;
 }
 
 export type NavigationItemId =
@@ -40,7 +41,10 @@ export type NavigationItemId =
   | 'judging'
   | 'results'
   | 'settings'
-  | 'mentoring';
+  | 'mentoring'
+  | 'reports'
+  | 'audit-log'
+  | 'tasks';
 
 export interface NavigationItem {
   id: NavigationItemId;

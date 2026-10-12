@@ -275,6 +275,39 @@ describe('VERTOTHON 2026 Application Foundation', () => {
       expect(screen.getByText(/Hackathon Results & Final Standings/i)).toBeInTheDocument();
     });
 
+    it('navigates to Reports, Audit Log, and Tasks pages when authorized', () => {
+      const mockAuth = createMockAuthContext();
+
+      const { unmount: unmountReports } = render(
+        <AuthContext.Provider value={mockAuth}>
+          <MemoryRouter initialEntries={['/app/reports']}>
+            <App />
+          </MemoryRouter>
+        </AuthContext.Provider>
+      );
+      expect(screen.getByText(/Comprehensive Reports & Data Exports/i)).toBeInTheDocument();
+      unmountReports();
+
+      const { unmount: unmountAudit } = render(
+        <AuthContext.Provider value={mockAuth}>
+          <MemoryRouter initialEntries={['/app/audit-log']}>
+            <App />
+          </MemoryRouter>
+        </AuthContext.Provider>
+      );
+      expect(screen.getByText(/Administrative Audit Log Viewer/i)).toBeInTheDocument();
+      unmountAudit();
+
+      render(
+        <AuthContext.Provider value={mockAuth}>
+          <MemoryRouter initialEntries={['/app/tasks']}>
+            <App />
+          </MemoryRouter>
+        </AuthContext.Provider>
+      );
+      expect(screen.getByText(/Organizer Task Management Console/i)).toBeInTheDocument();
+    });
+
     it('renders session-aware Dashboard link on public layout when authenticated', () => {
       const mockAuth = createMockAuthContext();
 

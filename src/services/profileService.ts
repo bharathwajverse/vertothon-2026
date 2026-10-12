@@ -40,6 +40,9 @@ export function mapDatabaseRowToProfile(row: Record<string, unknown>): UserProfi
     tShirtSize: row.t_shirt_size ? String(row.t_shirt_size) : undefined,
     dietaryRestrictions: row.dietary_restrictions ? String(row.dietary_restrictions) : undefined,
     createdAt: String(row.created_at || new Date().toISOString()),
+    checkedInAt: row.checked_in_at ? String(row.checked_in_at) : undefined,
+    checkedInBy: row.checked_in_by ? String(row.checked_in_by) : undefined,
+    qrCheckinToken: row.qr_checkin_token ? String(row.qr_checkin_token) : undefined,
   };
 }
 

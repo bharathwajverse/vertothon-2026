@@ -1,9 +1,10 @@
 import React from 'react';
-import { Menu, X, Bell, Terminal, LogOut, LogIn } from 'lucide-react';
+import { Menu, X, Terminal, LogOut, LogIn } from 'lucide-react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { NAVIGATION_ITEMS } from './navigationItems';
 import { useAuth } from '../../context';
 import { Badge } from '../common';
+import { NotificationCenter } from './NotificationCenter';
 
 interface HeaderProps {
   mobileMenuOpen: boolean;
@@ -75,14 +76,7 @@ export const Header: React.FC<HeaderProps> = ({ mobileMenuOpen, setMobileMenuOpe
           <span className="md:hidden">Safe Mode</span>
         </div>
 
-        <button
-          type="button"
-          aria-label="View system notifications"
-          className="p-2 text-slate-500 hover:text-slate-700 rounded-full hover:bg-slate-100 relative"
-        >
-          <Bell className="w-4 h-4" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-brand-500 rounded-full ring-2 ring-white"></span>
-        </button>
+        <NotificationCenter />
 
         {user ? (
           <div className="flex items-center gap-2.5 pl-2 border-l border-slate-200">

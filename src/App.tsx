@@ -33,6 +33,9 @@ import { ResultsPage } from './pages/results/ResultsPage';
 import { AnnouncementsPage } from './pages/announcements/AnnouncementsPage';
 import { SettingsPage } from './pages/settings/SettingsPage';
 import { MentorDeskPage } from './pages/mentoring/MentorDeskPage';
+import { ReportsPage } from './pages/reports/ReportsPage';
+import { AuditLogPage } from './pages/audit/AuditLogPage';
+import { TasksPage } from './pages/tasks/TasksPage';
 
 // Guards
 import { PublicOnlyRoute, ProtectedRoute } from './components/ProtectedRoute';
@@ -131,6 +134,36 @@ export const App: React.FC = () => {
         {/* Mentor Help Desk */}
         <Route path="mentoring" element={<MentorDeskPage />} />
 
+        {/* Reports & Data Exports (Organizers/Admin only) */}
+        <Route
+          path="reports"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'lead_organizer']}>
+              <ReportsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Audit Log Viewer (Organizers/Admin only) */}
+        <Route
+          path="audit-log"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'lead_organizer']}>
+              <AuditLogPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Task Management Console (Organizers/Staff) */}
+        <Route
+          path="tasks"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'lead_organizer', 'volunteer']}>
+              <TasksPage />
+            </ProtectedRoute>
+          }
+        />
+
         {/* Real Operations Platform Settings */}
         <Route path="settings" element={<SettingsPage />} />
       </Route>
@@ -145,6 +178,9 @@ export const App: React.FC = () => {
       <Route path="/projects" element={<Navigate to="/app/projects" replace />} />
       <Route path="/judging" element={<Navigate to="/app/judging" replace />} />
       <Route path="/mentoring" element={<Navigate to="/app/mentoring" replace />} />
+      <Route path="/reports" element={<Navigate to="/app/reports" replace />} />
+      <Route path="/audit-log" element={<Navigate to="/app/audit-log" replace />} />
+      <Route path="/tasks" element={<Navigate to="/app/tasks" replace />} />
       <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
       <Route path="/profile" element={<Navigate to="/app/profile" replace />} />
       <Route path="/results" element={<Navigate to="/app/results" replace />} />

@@ -12,6 +12,9 @@ import {
   Trophy,
   Megaphone,
   LifeBuoy,
+  FileSpreadsheet,
+  ShieldCheck,
+  CheckSquare,
 } from 'lucide-react';
 import { NavigationItem } from '../../types';
 
@@ -95,6 +98,30 @@ export const NAVIGATION_ITEMS: (NavigationItem & { icon: React.ElementType })[] 
     href: '/app/mentoring',
     icon: LifeBuoy,
     iconName: 'LifeBuoy',
+  },
+  {
+    id: 'reports',
+    label: 'Reports & Exports',
+    href: '/app/reports',
+    icon: FileSpreadsheet,
+    iconName: 'FileSpreadsheet',
+    allowedRoles: ['admin', 'lead_organizer'],
+  },
+  {
+    id: 'audit-log',
+    label: 'Audit Log',
+    href: '/app/audit-log',
+    icon: ShieldCheck,
+    iconName: 'ShieldCheck',
+    allowedRoles: ['admin', 'lead_organizer'],
+  },
+  {
+    id: 'tasks',
+    label: 'Tasks Console',
+    href: '/app/tasks',
+    icon: CheckSquare,
+    iconName: 'CheckSquare',
+    allowedRoles: ['admin', 'lead_organizer', 'volunteer'],
   },
   {
     id: 'settings',

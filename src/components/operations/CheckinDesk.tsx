@@ -1,21 +1,24 @@
 import React, { useState } from 'react';
+import { Camera, QrCode } from 'lucide-react';
 import { Card, Button, Badge } from '../common';
 import { verifyAndCheckInAttendee, CheckinResult } from '../../services/operationsService';
+import { QrCameraScanner } from './QrCameraScanner';
 
 export const CheckinDesk: React.FC = () => {
   const [inputVal, setInputVal] = useState('');
   const [result, setResult] = useState<CheckinResult | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isCameraActive, setIsCameraActive] = useState(false);
   const [recentCheckins, setRecentCheckins] = useState<Array<{ name: string; time: string; email: string }>>([]);
 
-  const handleCheckin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputVal.trim()) return;
+  const executeCheckin = async (rawToken: string) => {
+    const cleanToken = rawToken.trim();
+    if (!cleanToken) return;
 
     setIsProcessing(true);
     setResult(null);
 
-    const res = await verifyAndCheckInAttendee(inputVal.trim());
+    const res = await verifyAndCheckInAttendee(cleanToken);
     setIsProcessing(false);
     setResult(res);
 
@@ -32,37 +35,79 @@ export const CheckinDesk: React.FC = () => {
     }
   };
 
+  const handleManualSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    executeCheckin(inputVal);
+  };
+
+  const handleCameraScan = (scannedCode: string) => {
+    if (isProcessing) return;
+    setInputVal(scannedCode);
+    executeCheckin(scannedCode);
+  };
+
   return (
     <div className="space-y-6">
       <Card className="border-indigo-100 dark:border-indigo-900/40">
-        <form onSubmit={handleCheckin} className="space-y-4">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-              Attendee QR & Badge Check-in Desk
-            </h2>
-            <p className="text-xs text-slate-500">
-              Scan barcode/QR token or type participant ID to verify approval and record badge issuance.
-            </p>
-          </div>
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <QrCode className="w-5 h-5 text-indigo-600" />
+                Attendee QR & Badge Check-in Desk
+              </h2>
+              <p className="text-xs text-slate-500">
+                Scan barcode/QR token using camera or manual token entry to verify approval and record badge issuance.
+              </p>
+            </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            <input
-              type="text"
-              value={inputVal}
-              onChange={(e) => setInputVal(e.target.value)}
-              placeholder="Scan or paste 16-hex token / User UUID..."
-              className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
-            />
             <Button
-              type="submit"
-              variant="primary"
-              size="md"
-              disabled={isProcessing || !inputVal.trim()}
+              type="button"
+              variant={isCameraActive ? 'secondary' : 'primary'}
+              size="sm"
+              onClick={() => setIsCameraActive((prev) => !prev)}
+              data-testid="toggle-camera-btn"
             >
-              {isProcessing ? 'Verifying...' : 'Check In Attendee'}
+              <Camera className="w-4 h-4 mr-1.5" />
+              {isCameraActive ? 'Close Camera' : 'Open Camera Scanner'}
             </Button>
           </div>
-        </form>
+
+          {/* Camera Scanner Container */}
+          {isCameraActive && (
+            <div className="pt-2">
+              <QrCameraScanner
+                onScan={handleCameraScan}
+                isScanningActive={isCameraActive && !isProcessing}
+              />
+            </div>
+          )}
+
+          {/* Manual Input Fallback */}
+          <form onSubmit={handleManualSubmit} className="space-y-2 pt-2">
+            <label htmlFor="token-manual-input" className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+              Manual Token / Attendee Identifier Fallback
+            </label>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input
+                id="token-manual-input"
+                type="text"
+                value={inputVal}
+                onChange={(e) => setInputVal(e.target.value)}
+                placeholder="Scan or paste 16-hex token / User UUID..."
+                className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+              />
+              <Button
+                type="submit"
+                variant="primary"
+                size="md"
+                disabled={isProcessing || !inputVal.trim()}
+              >
+                {isProcessing ? 'Verifying...' : 'Check In Attendee'}
+              </Button>
+            </div>
+          </form>
+        </div>
 
         {result && (
           <div
