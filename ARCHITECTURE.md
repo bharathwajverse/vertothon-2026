@@ -224,3 +224,111 @@ vertothon-2026/
 ├── tsconfig.json
 └── vite.config.ts
 ```
+
+---
+
+## 7. Shared UI Component Library (`src/components/common/`)
+
+The platform includes a zero-external-dependency atomic UI library built with Tailwind CSS and React:
+
+### Available Components & Usage
+
+#### 1. `Button`
+Supports variants (`primary`, `secondary`, `outline`, `danger`), sizes (`sm`, `md`, `lg`), left/right icons, and accessible loading state (`isLoading`).
+```tsx
+import { Button } from '@/components/common';
+import { ArrowRight } from 'lucide-react';
+
+<Button variant="primary" size="md" rightIcon={<ArrowRight className="w-4 h-4" />}>
+  Submit Entry
+</Button>
+<Button variant="secondary" isLoading={isSubmitting}>
+  Saving
+</Button>
+```
+
+#### 2. `Badge`
+Status pills for review, role, and track indicators (`neutral`, `success`, `warning`, `danger`, `info`) with optional dot indicator.
+```tsx
+import { Badge } from '@/components/common';
+
+<Badge variant="success" dot>Approved</Badge>
+<Badge variant="warning">Waitlisted</Badge>
+```
+
+#### 3. `Modal`
+Accessible dialog with backdrop blur, `Escape` key listeners, scroll-locking, and action handlers.
+```tsx
+import { Modal } from '@/components/common';
+
+<Modal
+  isOpen={isOpen}
+  onClose={() => setIsOpen(false)}
+  onConfirm={handleConfirm}
+  title="Lock Submission"
+  confirmLabel="Lock"
+>
+  <p>Submission will be finalized.</p>
+</Modal>
+```
+
+#### 4. `Toast`
+Notification banner for feedback (`success`, `error`, `warning`, `info`) with automatic timeout and manual dismiss.
+```tsx
+import { Toast } from '@/components/common';
+
+<Toast
+  toast={{ id: '1', type: 'success', title: 'Saved', duration: 4000 }}
+  onDismiss={handleDismiss}
+/>
+```
+
+#### 5. `SelectDropdown`
+Accessible, labeled `<select>` element with error states, helper texts, and custom styling.
+```tsx
+import { SelectDropdown } from '@/components/common';
+
+<SelectDropdown
+  label="Track"
+  value={track}
+  onChange={setTrack}
+  options={[{ value: 'ai', label: 'AI' }, { value: 'fintech', label: 'Fintech' }]}
+/>
+```
+
+#### 6. `DataTable<T>`
+Generic typed table component with column definitions, loading spinners, and customizable empty states.
+```tsx
+import { DataTable, ColumnDef } from '@/components/common';
+
+const columns: ColumnDef<Participant>[] = [
+  { key: 'name', header: 'Name' },
+  { key: 'role', header: 'Role', render: (row) => <Badge>{row.role}</Badge> },
+];
+
+<DataTable columns={columns} data={participants} keyExtractor={(p) => p.id} />
+```
+
+---
+
+## 8. Database Migrations & Row Level Security (RLS)
+
+All database schema evolutions are version-controlled under `supabase/migrations/`.
+
+### Migration: `20261012000000_initial_schema.sql`
+
+#### Core Entities Created:
+1. **`profiles`**: Linked 1:1 with `auth.users(id)` with automatic registration trigger (`on_auth_user_created`). Stores role (`user_role`), review status (`registration_status`), QR tokens, and contact metadata.
+2. **`teams`**: Stores team names, join codes, leader references, and tracks (`AI`, `Fintech`, etc.).
+3. **`team_members`**: Junction table enforcing that a participant belongs to at most one team (`UNIQUE (profile_id)`) and team size does not exceed `max_capacity`.
+4. **`submissions`**: Team project repository links, demo URLs, track selections, and status flags.
+5. **`incidents`**: Operational control room incident log with severity and status.
+6. **`announcements`**: Public broadcast ticker.
+
+#### Security & Access Control Policies:
+* **Privilege Escalation Prevention:**
+  * When users update their own profile, a `WITH CHECK` clause ensures they cannot alter their assigned `role` or `registration_status`.
+  * Trigger `handle_new_user()` strictly initializes new accounts with `role = 'participant'`.
+* **Security-Definer Helper Functions:**
+  * Functions `is_admin_or_organizer()`, `is_staff()`, `is_team_member()`, and `is_team_leader()` run with strict `SET search_path = public, auth` to prevent search path hijacking.
+* **Table RLS Status:** Enabled on all 6 tables. Anonymous access is strictly limited to viewing `announcements`.

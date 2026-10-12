@@ -29,3 +29,18 @@ jobs:
           test -f IMPLEMENTATION_CHECKLIST.md
           test -f .env.example
           echo "All Phase 0 Baseline Documentation verified successfully."
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Test Suite
+        run: npm test
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run TypeScript Typecheck
+        run: npm run typecheck
+
+      - name: Run Production Build
+        run: npm run build
