@@ -4,7 +4,7 @@ A scalable hackathon event management platform for participant registration, tea
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![TypeScript: Strict](https://img.shields.io/badge/TypeScript-5.3%20Strict-3178C6.svg)](https://www.typescriptlang.org/)
-[![Test Suite](https://img.shields.io/badge/Tests-64%2F64%20Passing-brightgreen.svg)](./src/test)
+[![Test Suite](https://img.shields.io/badge/Tests-118%2F118%20Passing-brightgreen.svg)](./src/test)
 [![Code Quality](https://img.shields.io/badge/ESLint-0%20Warnings-4B32C3.svg)](./.eslintrc.cjs)
 
 ---
@@ -187,7 +187,7 @@ Open `.env` in an editor and update `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_
 Verify that all automated checks pass cleanly:
 
 ```bash
-# Execute unit and integration tests (64 tests)
+# Execute unit and integration tests (118 tests across 22 suites)
 npm test
 
 # Verify TypeScript compilation with zero errors
@@ -258,7 +258,8 @@ vertothon-2026/
 ├── public/                   # Static browser assets
 ├── supabase/
 │   └── migrations/
-│       └── 20261012000000_initial_schema.sql # Canonical SQL migration script
+│       ├── 20261012000000_initial_schema.sql           # Initial baseline schema
+│       └── 20261012010000_event_operations_expansion.sql # Event operations & RLS expansion
 └── src/
     ├── App.tsx               # Main routing tree and route authorization boundaries
     ├── main.tsx              # React DOM root entrypoint
@@ -275,18 +276,19 @@ vertothon-2026/
     │   │   └── Toast.tsx         # Operational notification toasts
     │   ├── dashboard/        # Telemetry cards and database health monitors
     │   ├── judging/          # Project evaluation modals and rubric sliders
-    │   ├── layout/           # AppLayout, navigation sidebar, and top header
-    │   ├── operations/       # QR check-in desk, announcements, and incident log
+    │   ├── layout/           # AppLayout, PublicLayout, navigation sidebar, and notification center
+    │   ├── operations/       # QR check-in desk, camera QR scanner, announcements, incident log
     │   ├── organizer/        # Attendee registration review queue
-    │   ├── profile/          # Profile onboarding forms and status banners
+    │   ├── profile/          # Profile onboarding forms and printable participant pass
     │   ├── submissions/      # Deliverable submission forms and gallery
     │   └── teams/            # Team creation, join cards, and roster dashboards
     ├── context/              # Authentication context and useAuth hook
     ├── data/                 # Baseline schedule and prototype demo datasets
     ├── lib/                  # Supabase client instantiation and mock adapters
-    ├── pages/                # Top-level route page views
-    ├── services/             # PostgREST data access functions and API abstractions
+    ├── pages/                # Top-level route page views (public & app portal)
+    ├── services/             # PostgREST data access functions, exports, tasks, and audit
     ├── test/                 # Test setup and integration test suites
+    ├── utils/                # RFC 4180 CSV export and formula injection mitigation
     └── types/                # Central TypeScript types, enums, and interfaces
 ```
 
@@ -302,7 +304,7 @@ All scripts are executed via `npm run <command>`:
 | `npm run build` | `tsc -b && vite build` | Typechecks with `tsc` and bundles production assets into the `dist/` directory. |
 | `npm run lint` | `eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0` | Lints all TypeScript source files. Exits with non-zero code on any warning. |
 | `npm run typecheck` | `tsc --noEmit` | Runs the TypeScript compiler in type-checking mode without emitting JavaScript. |
-| `npm test` | `vitest run` | Executes all 11 test suites (64 tests) once in headless CI mode. |
+| `npm test` | `vitest run` | Executes all 22 test suites (118 tests) once in headless CI mode. |
 | `npm run test:watch` | `vitest` | Starts Vitest in interactive watch mode for active Test-Driven Development. |
 | `npm run preview` | `vite preview` | Boots a local HTTP static server to preview the built `dist/` output. |
 
@@ -313,23 +315,30 @@ All scripts are executed via `npm run <command>`:
 The repository enforces strict continuous verification: zero compiler errors, zero lint warnings, and 100% automated test pass rate.
 
 ```
-Test Files  11 passed (11)
-     Tests  64 passed (64)
+Test Files  22 passed (22)
+     Tests  118 passed (118)
 ```
 
 ### Verified Test Suites
 
-* [`src/test/App.test.tsx`](./src/test/App.test.tsx): Root application render, navigation bar mounting, and initial routing.
+* [`src/test/App.test.tsx`](./src/test/App.test.tsx): Root application render, public portal routes, and authenticated `/app` layout.
 * [`src/components/ProtectedRoute.test.tsx`](./src/components/ProtectedRoute.test.tsx): Role-based routing guards, redirects for unauthorized roles, and public-only routes.
 * [`src/components/common/commonComponents.test.tsx`](./src/components/common/commonComponents.test.tsx): UI component library primitives (Button, Card, Badge, Modal, DataTable).
 * [`src/pages/auth/authPages.test.tsx`](./src/pages/auth/authPages.test.tsx): Sign-in, registration intake validation, and password recovery states.
 * [`src/components/profile/onboardingAndReview.test.tsx`](./src/components/profile/onboardingAndReview.test.tsx): Attendee profile creation, field constraints, and status updates.
 * [`src/components/teams/teamManagement.test.tsx`](./src/components/teams/teamManagement.test.tsx): Team creation, 6-character code joining, 4-member capacity boundaries, and leave/disband logic.
 * [`src/components/operations/operationsTests.test.tsx`](./src/components/operations/operationsTests.test.tsx): Check-in token lookup, duplicate entry warnings, incident creation, and announcements.
+* [`src/components/operations/batch34Integration.test.tsx`](./src/components/operations/batch34Integration.test.tsx): Camera QR scanning integration and operations workflow.
 * [`src/components/submissions/submissionTests.test.tsx`](./src/components/submissions/submissionTests.test.tsx): Deliverable submission form, deadline boundary conditions, and tech stack tags.
 * [`src/components/judging/judgingTests.test.tsx`](./src/components/judging/judgingTests.test.tsx): 4-criteria rubric calculations, 100-point total bounds, and offline scoring persistence.
 * [`src/services/databaseHealth.test.ts`](./src/services/databaseHealth.test.ts): Database connectivity checks, latency thresholds, and table health probes.
 * [`src/test/databaseSecurity.test.ts`](./src/test/databaseSecurity.test.ts): Row Level Security invariants and privilege constraints.
+* [`src/services/eventSettingsService.test.ts`](./src/services/eventSettingsService.test.ts): Authoritative event settings and fallback resilience.
+* [`src/services/mentorService.test.ts`](./src/services/mentorService.test.ts): Mentorship request lifecycle and assignment.
+* [`src/services/auditService.test.ts`](./src/services/auditService.test.ts): Audit log logging and schema cache fallback.
+* [`src/services/taskService.test.ts`](./src/services/taskService.test.ts): Organizer task management operations.
+* [`src/services/reportExportService.test.ts`](./src/services/reportExportService.test.ts): Reporting data extraction and exports.
+* [`src/utils/csvExport.test.ts`](./src/utils/csvExport.test.ts): RFC 4180 compliant CSV formatting and formula injection defense.
 
 ---
 
