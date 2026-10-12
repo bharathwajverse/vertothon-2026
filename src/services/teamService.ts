@@ -378,3 +378,7 @@ export async function removeTeamMember(
     };
   }
 }
+
+export function fetchCurrentUserTeam(userId: string): Promise<TeamQueryResult> {
+  return fetchUserTeam(userId);
+}

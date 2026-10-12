@@ -22,7 +22,6 @@ import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
 
 // Protected App Pages
 import { DashboardPage } from './pages/dashboard/DashboardPage';
-import { PlaceholderPage } from './pages/placeholder/PlaceholderPage';
 import { ParticipantsPage } from './pages/participants/ParticipantsPage';
 import { TeamsPage } from './pages/teams/TeamsPage';
 import { ProjectsPage } from './pages/projects/ProjectsPage';
@@ -32,6 +31,8 @@ import { JudgingPage } from './pages/judging/JudgingPage';
 import { ProfilePage } from './pages/profile/ProfilePage';
 import { ResultsPage } from './pages/results/ResultsPage';
 import { AnnouncementsPage } from './pages/announcements/AnnouncementsPage';
+import { SettingsPage } from './pages/settings/SettingsPage';
+import { MentorDeskPage } from './pages/mentoring/MentorDeskPage';
 
 // Guards
 import { PublicOnlyRoute, ProtectedRoute } from './components/ProtectedRoute';
@@ -127,18 +128,11 @@ export const App: React.FC = () => {
           }
         />
 
-        {/* Settings Module Placeholder */}
-        <Route
-          path="settings"
-          element={
-            <PlaceholderPage
-              title="Operations Platform Settings"
-              description="System feature flags (payments, AI assistance), capacity limits, and organizer roles."
-              plannedMilestone="Milestone 7: Hardening & Configuration"
-              moduleKey="PLATFORM_SETTINGS"
-            />
-          }
-        />
+        {/* Mentor Help Desk */}
+        <Route path="mentoring" element={<MentorDeskPage />} />
+
+        {/* Real Operations Platform Settings */}
+        <Route path="settings" element={<SettingsPage />} />
       </Route>
 
       {/* =========================================================================
@@ -150,6 +144,7 @@ export const App: React.FC = () => {
       <Route path="/checkin" element={<Navigate to="/app/checkin" replace />} />
       <Route path="/projects" element={<Navigate to="/app/projects" replace />} />
       <Route path="/judging" element={<Navigate to="/app/judging" replace />} />
+      <Route path="/mentoring" element={<Navigate to="/app/mentoring" replace />} />
       <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
       <Route path="/profile" element={<Navigate to="/app/profile" replace />} />
       <Route path="/results" element={<Navigate to="/app/results" replace />} />

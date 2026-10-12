@@ -16,6 +16,8 @@ interface ProjectScoringModalProps {
   onSaved: () => void;
 }
 
+type RubricKey = 'innovation' | 'technical' | 'impact' | 'design';
+
 export const ProjectScoringModal: React.FC<ProjectScoringModalProps> = ({
   submission,
   judgeId,
@@ -27,17 +29,17 @@ export const ProjectScoringModal: React.FC<ProjectScoringModalProps> = ({
     (e) => e.submissionId === submission.id && e.judgeId === judgeId
   );
 
-  const [scores, setScores] = useState({
-    innovation: existingEval?.scores.innovation || 18,
-    technical: existingEval?.scores.technical || 18,
-    impact: existingEval?.scores.impact || 18,
-    design: existingEval?.scores.design || 18,
-    feedback: existingEval?.scores.feedback || '',
+  const [scores, setScores] = useState<Record<RubricKey, number> & { feedback: string; [k: string]: number | string }>({
+    innovation: Number(existingEval?.scores.innovation ?? 18),
+    technical: Number(existingEval?.scores.technical ?? 18),
+    impact: Number(existingEval?.scores.impact ?? 18),
+    design: Number(existingEval?.scores.design ?? 18),
+    feedback: String(existingEval?.feedback || existingEval?.scores.feedback || ''),
   });
 
   const total = calculateTotalScore(scores);
 
-  const handleScoreChange = (criteria: 'innovation' | 'technical' | 'impact' | 'design', val: number) => {
+  const handleScoreChange = (criteria: string, val: number) => {
     const clamped = Math.max(0, Math.min(25, val));
     setScores((prev) => ({ ...prev, [criteria]: clamped }));
   };

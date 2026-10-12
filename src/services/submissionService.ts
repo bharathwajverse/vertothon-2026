@@ -24,8 +24,8 @@ export interface SubmissionListQueryResult {
   error: Error | null;
 }
 
-// Global project submission deadline: Nov 15, 2026, 12:00 UTC
-export const SUBMISSION_DEADLINE_ISO = '2026-11-15T12:00:00Z';
+// Global project submission deadline: Nov 15, 2026, 12:00 PM IST
+export const SUBMISSION_DEADLINE_ISO = '2026-11-15T12:00:00+05:30';
 
 export function isSubmissionDeadlinePassed(): boolean {
   return new Date().getTime() > new Date(SUBMISSION_DEADLINE_ISO).getTime();

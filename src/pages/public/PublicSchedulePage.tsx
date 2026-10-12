@@ -1,10 +1,32 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Clock, MapPin, AlertCircle, ArrowRight } from 'lucide-react';
 import { EVENT_DETAILS } from '../../data/publicData';
-import { SCHEDULE_ITEMS, SCHEDULE_DAYS, ScheduleItem } from '../../data/scheduleData';
+import { fetchScheduleItems, groupScheduleItemsByDay } from '../../services/scheduleService';
+import { ScheduleItem } from '../../types';
+import { SCHEDULE_ITEMS as FALLBACK_SCHEDULE_ITEMS } from '../../data/scheduleData';
 
 export const PublicSchedulePage: React.FC = () => {
+  const [items, setItems] = useState<ScheduleItem[]>(FALLBACK_SCHEDULE_ITEMS);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadSchedule() {
+      try {
+        const res = await fetchScheduleItems(true);
+        if (isMounted && res.data && res.data.length > 0) {
+          setItems(res.data);
+        }
+      } catch (err) {
+        console.error('Failed to load public schedule:', err);
+      }
+    }
+    loadSchedule();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const getCategoryColor = (cat: ScheduleItem['category']) => {
     switch (cat) {
       case 'ceremony':
@@ -22,7 +44,8 @@ export const PublicSchedulePage: React.FC = () => {
     }
   };
 
-  const days = SCHEDULE_DAYS;
+  const groupedDays = groupScheduleItemsByDay(items);
+  const days = Object.keys(groupedDays);
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-12">
@@ -50,7 +73,7 @@ export const PublicSchedulePage: React.FC = () => {
       {/* Timeline Days */}
       <div className="space-y-12">
         {days.map((day) => {
-          const items = SCHEDULE_ITEMS.filter((i) => i.day === day);
+          const dayItems = groupedDays[day] || [];
 
           return (
             <div key={day} className="space-y-4">
@@ -60,7 +83,7 @@ export const PublicSchedulePage: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {items.map((item) => (
+                {dayItems.map((item) => (
                   <div
                     key={item.id}
                     className="p-5 rounded-xl bg-slate-800/40 border border-slate-800 hover:border-slate-700 space-y-3 transition-colors"
@@ -81,7 +104,7 @@ export const PublicSchedulePage: React.FC = () => {
                     <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400">
                       <span className="flex items-center gap-1 font-mono">
                         <Clock className="w-3.5 h-3.5 text-indigo-400" />
-                        {item.time}
+                        {item.time || item.startTime}
                       </span>
                       <span className="flex items-center gap-1">
                         <MapPin className="w-3.5 h-3.5 text-slate-500" />

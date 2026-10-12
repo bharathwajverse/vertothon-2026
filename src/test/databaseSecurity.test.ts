@@ -68,4 +68,61 @@ describe('Database Security & RLS Policy Static Audit', () => {
       expect(migrationSql).toMatch(rlsRegex);
     });
   });
+
+  describe('Batch 2 Migration Security & RLS Expansion Audit', () => {
+    const batch2MigrationPath = path.resolve(__dirname, '../../supabase/migrations/20261012010000_event_operations_expansion.sql');
+    const batch2Sql = fs.readFileSync(batch2MigrationPath, 'utf8');
+
+    it('batch 2 migration file exists and is populated', () => {
+      expect(batch2Sql.length).toBeGreaterThan(1000);
+    });
+
+    it('drops overly broad profile SELECT policy and enforces strict least-privilege policies', () => {
+      expect(batch2Sql).toMatch(/DROP POLICY IF EXISTS "Profiles readable by authenticated users" ON public\.profiles;/i);
+      expect(batch2Sql).toMatch(/CREATE POLICY "Users can read own profile"/i);
+      expect(batch2Sql).toMatch(/CREATE POLICY "Staff can read all profiles"/i);
+      expect(batch2Sql).toMatch(/CREATE POLICY "Teammates can read teammate profiles"/i);
+    });
+
+    it('creates public_profiles view exposing only safe directory fields', () => {
+      expect(batch2Sql).toMatch(/CREATE OR REPLACE VIEW public\.public_profiles AS/i);
+      expect(batch2Sql).toMatch(/full_name,/i);
+      expect(batch2Sql).toMatch(/role,/i);
+      expect(batch2Sql).toMatch(/github_profile/i);
+      const viewMatch = batch2Sql.match(/CREATE OR REPLACE VIEW public\.public_profiles AS([\s\S]*?)FROM public\.profiles;/i);
+      expect(viewMatch).not.toBeNull();
+      const viewProjection = viewMatch![1];
+      expect(viewProjection).not.toMatch(/\bemail\b/i);
+      expect(viewProjection).not.toMatch(/\bphone\b/i);
+      expect(viewProjection).not.toMatch(/\bdietary_requirements\b/i);
+      expect(viewProjection).not.toMatch(/\bt_shirt_size\b/i);
+      expect(viewProjection).not.toMatch(/\bqr_checkin_token\b/i);
+    });
+
+    it('enables Row Level Security on all Batch 2 tables', () => {
+      const batch2Tables = [
+        'event_settings',
+        'schedule_items',
+        'judge_assignments',
+        'evaluations',
+        'mentor_requests',
+        'tasks',
+        'audit_logs',
+      ];
+
+      batch2Tables.forEach((table) => {
+        const rlsRegex = new RegExp(`ALTER TABLE public\\.${table} ENABLE ROW LEVEL SECURITY;`, 'i');
+        expect(batch2Sql).toMatch(rlsRegex);
+      });
+    });
+
+    it('enforces SECURITY DEFINER search_path hardening on checkin_participant and is_mentor', () => {
+      expect(batch2Sql).toMatch(/FUNCTION public\.checkin_participant[\s\S]*?SECURITY DEFINER[\s\S]*?SET search_path = public, auth, pg_temp/i);
+      expect(batch2Sql).toMatch(/REVOKE EXECUTE ON FUNCTION public\.checkin_participant\(text, uuid\) FROM PUBLIC;/i);
+      expect(batch2Sql).toMatch(/GRANT EXECUTE ON FUNCTION public\.checkin_participant\(text, uuid\) TO authenticated, service_role;/i);
+
+      expect(batch2Sql).toMatch(/FUNCTION public\.is_mentor\(\)[\s\S]*?SECURITY DEFINER[\s\S]*?SET search_path = public, auth, pg_temp/i);
+      expect(batch2Sql).toMatch(/REVOKE EXECUTE ON FUNCTION public\.is_mentor\(\) FROM PUBLIC;/i);
+    });
+  });
 });

@@ -1,6 +1,7 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { Incident, IncidentSeverity, IncidentStatus, Announcement, AnnouncementCategory, UserProfile } from '../types';
 import { mapDatabaseRowToProfile } from './profileService';
+import { logAuditEvent } from './auditService';
 
 export interface CheckinResult {
   success: boolean;
@@ -10,9 +11,14 @@ export interface CheckinResult {
 }
 
 /**
- * Scan & verify attendee QR token at the check-in desk
+ * Scan & verify attendee QR token at the check-in desk.
+ * Utilizes atomic checkin_participant PostgreSQL RPC function,
+ * with graceful fallback to table queries for testing and offline environments.
  */
-export async function verifyAndCheckInAttendee(tokenOrId: string): Promise<CheckinResult> {
+export async function verifyAndCheckInAttendee(
+  tokenOrId: string,
+  operatorId?: string
+): Promise<CheckinResult> {
   if (!isSupabaseConfigured) {
     return { success: false, error: 'Database is offline. Live connection required for check-in desk.' };
   }
@@ -23,7 +29,54 @@ export async function verifyAndCheckInAttendee(tokenOrId: string): Promise<Check
   }
 
   try {
-    // 1. Search profile by qr_checkin_token or UUID id
+    // 1. Try atomic PostgreSQL RPC function first
+    try {
+      const { data: rpcData, error: rpcErr } = await supabase.rpc('checkin_participant', {
+        p_token: clean,
+        p_operator_id: operatorId || (await supabase.auth.getUser()).data.user?.id || '00000000-0000-0000-0000-000000000000',
+      });
+
+      if (!rpcErr && rpcData && typeof rpcData === 'object') {
+        const res = rpcData as Record<string, unknown>;
+        const status = res.status as string;
+        const message = (res.message as string) || '';
+        const rawProfile = res.profile as Record<string, unknown> | undefined;
+        const profile = rawProfile ? mapDatabaseRowToProfile(rawProfile) : undefined;
+
+        if (status === 'success') {
+          return {
+            success: true,
+            profile,
+            alreadyCheckedIn: false,
+          };
+        }
+        if (status === 'already_checked_in') {
+          return {
+            success: true,
+            profile,
+            alreadyCheckedIn: true,
+            error: message,
+          };
+        }
+        if (status === 'not_approved') {
+          return {
+            success: false,
+            profile,
+            error: message,
+          };
+        }
+        if (status === 'not_found' || status === 'unauthorized') {
+          return {
+            success: false,
+            error: message,
+          };
+        }
+      }
+    } catch {
+      // Proceed to fallback logic
+    }
+
+    // 2. Resilient fallback query logic (when RPC function is not yet deployed or in unit test mocks)
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(clean);
 
     let query = supabase.from('profiles').select('*');
@@ -66,16 +119,33 @@ export async function verifyAndCheckInAttendee(tokenOrId: string): Promise<Check
     const checkinTime = new Date().toISOString();
     const { error: updateErr } = await supabase
       .from('profiles')
-      .update({ checked_in_at: checkinTime })
+      .update({
+        checked_in_at: checkinTime,
+        checked_in_by: operatorId || null,
+      })
       .eq('id', profile.id);
 
     if (updateErr) {
       return { success: false, error: updateErr.message };
     }
 
+    void logAuditEvent(
+      'participant_checkin',
+      'profile',
+      profile.id,
+      {
+        token: clean,
+        participant_name: profile.fullName,
+        participant_email: profile.email,
+        checked_in_at: checkinTime,
+        mode: 'fallback',
+      },
+      operatorId
+    );
+
     return {
       success: true,
-      profile: { ...profile, createdAt: checkinTime },
+      profile: { ...profile, checkedInAt: checkinTime },
       alreadyCheckedIn: false,
     };
   } catch (err) {

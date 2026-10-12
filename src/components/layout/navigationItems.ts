@@ -11,6 +11,7 @@ import {
   User,
   Trophy,
   Megaphone,
+  LifeBuoy,
 } from 'lucide-react';
 import { NavigationItem } from '../../types';
 
@@ -87,6 +88,13 @@ export const NAVIGATION_ITEMS: (NavigationItem & { icon: React.ElementType })[] 
     href: '/app/results',
     icon: Trophy,
     iconName: 'Trophy',
+  },
+  {
+    id: 'mentoring',
+    label: 'Mentor Desk',
+    href: '/app/mentoring',
+    icon: LifeBuoy,
+    iconName: 'LifeBuoy',
   },
   {
     id: 'settings',
